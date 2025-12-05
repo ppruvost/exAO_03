@@ -4,16 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Analyse Vidéo − Mire</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/numeric@1.2.6/numeric.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
       background: #f5f5f5;
     }
-    h1 {
-      margin-bottom: 10px;
-    }
+    h1 { margin-bottom: 10px; }
     #videoContainer, #controls, #charts {
       margin-top: 20px;
       background: white;
@@ -21,17 +19,8 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    video {
-      width: 100%;
-      max-width: 600px;
-      border-radius: 8px;
-      background: black;
-    }
-    canvas {
-      margin-top: 20px;
-      max-width: 700px;
-      width: 100%;
-    }
+    video { width: 100%; max-width: 600px; border-radius: 8px; background: black; }
+    canvas { margin-top: 20px; max-width: 700px; width: 100%; }
     button {
       padding: 10px 15px;
       margin-right: 10px;
@@ -75,17 +64,17 @@
     <canvas id="positionChart"></canvas>
   </div>
 
-  <!-- Scripts -->
+  <!-- Script principal -->
   <script src="webcam.js"></script>
-  <script src="script.js"></script>
   <script>
-    // Lancement de la webcam via bouton
-    document.getElementById('initCam').addEventListener('click', () => {
-      if (window.startWebcamAnalysis) {
-        window.startWebcamAnalysis();
-      } else {
-        console.error("startWebcamAnalysis non défini !");
-      }
+    document.addEventListener('DOMContentLoaded', () => {
+      const initBtn = document.getElementById('initCam');
+      const detectBtn = document.getElementById('detectMire');
+      const autoCalibBtn = document.getElementById('autoCalibAngle');
+
+      initBtn.addEventListener('click', () => window.startWebcamAnalysis());
+      detectBtn.addEventListener('click', () => window.detectMireInstantanee());
+      autoCalibBtn.addEventListener('click', () => window.autoCalibAngle());
     });
   </script>
 </body>
