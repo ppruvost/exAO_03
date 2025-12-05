@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analyse Vidéo − Mire</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #videoContainer, #controls, #charts {
+      margin-top: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    video {
+      width: 100%;
+      max-width: 600px;
+      border-radius: 8px;
+      background: black;
+    }
+    canvas {
+      margin-top: 20px;
+      max-width: 700px;
+      width: 100%;
+    }
+    button {
+      padding: 10px 15px;
+      margin-right: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background: #333;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Analyse Vidéo avec Mire</h1>
+
+  <div id="videoContainer">
+    <h2>Webcam</h2>
+    <video id="preview" autoplay playsinline></video>
+    <br /><br />
+    <button id="initCam">Initialiser Webcam</button>
+    <button id="detectMire">Détection instantanée</button>
+    <button id="autoCalibAngle">Auto‑calibration + Angle</button>
+    <p id="calibInfo"></p>
+  </div>
+
+  <div id="controls">
+    <h2>Enregistrement</h2>
+    <button id="startRec">Démarrer Enregistrement</button>
+    <button id="stopRec">Arrêter</button>
+    <p id="recStatus"></p>
+    <video id="recordedVideo" controls></video>
+    <br /><br />
+    <button id="processVideo">Analyser la Vidéo</button>
+    <p id="processStatus"></p>
+    <a id="downloadCSV" href="#" download="donnees.csv" style="display:none;">Télécharger CSV</a>
+  </div>
+
+  <div id="charts">
+    <h2>Résultats</h2>
+    <canvas id="speedChart"></canvas>
+    <canvas id="positionChart"></canvas>
+  </div>
+
+  <!-- Scripts séparés -->
+  <script src="webcam.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
