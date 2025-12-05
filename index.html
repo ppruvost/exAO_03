@@ -49,7 +49,7 @@
 
   <div id="videoContainer">
     <h2>Webcam</h2>
-    <video id="preview" autoplay playsinline></video>
+    <video id="video" autoplay playsinline></video>
     <br /><br />
     <button id="initCam">Initialiser Webcam</button>
     <button id="detectMire">Détection instantanée</button>
@@ -75,8 +75,18 @@
     <canvas id="positionChart"></canvas>
   </div>
 
-  <!-- Scripts séparés -->
+  <!-- Scripts -->
   <script src="webcam.js"></script>
   <script src="script.js"></script>
+  <script>
+    // Lancement de la webcam via bouton
+    document.getElementById('initCam').addEventListener('click', () => {
+      if (window.startWebcamAnalysis) {
+        window.startWebcamAnalysis();
+      } else {
+        console.error("startWebcamAnalysis non défini !");
+      }
+    });
+  </script>
 </body>
 </html>
