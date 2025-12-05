@@ -1,0 +1,163 @@
+/* Mobile‑optimized style for webcam + mire de Foucault analysis */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f4f4;
+  color: #333;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 15px;
+}
+
+h1 {
+  text-align: center;
+  margin: 10px 0 20px 0;
+  font-size: 1.6rem;
+}
+
+/* Webcam Panel */
+#webcam-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+#webcam-stream, #captured-frame {
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+/* Buttons */
+.button-bar {
+  text-align: center;
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+button {
+  background: #0066cc;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  min-width: 140px;
+  transition: background 0.2s, transform 0.15s;
+  touch-action: manipulation;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+button:hover {
+  background: #004c99;
+}
+
+/* Analysis layout */
+#analysis-container {
+  margin-top: 25px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.panel {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+#results {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Chart */
+#chartContainer {
+  margin-top: 20px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
+
+canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 360px;
+}
+
+/* SPECIAL MOBILE OPTIMIZATION for mire de Foucault */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  #webcam-stream, #captured-frame {
+    width: 100%;
+    max-width: none;
+    border-radius: 10px;
+    /* Boost resolution on mobile to better detect the Foucault pattern */
+    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  button {
+    font-size: 0.95rem;
+    padding: 10px 16px;
+    min-width: 120px;
+  }
+
+  #analysis-container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  canvas {
+    max-height: 280px;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+
+  #results {
+    font-size: 0.9rem;
+  }
+
+  /* Better focus on the Foucault pattern region */
+  .focus-circle {
+    width: 140px;
+    height: 140px;
+    border: 3px solid rgba(255, 255, 255, 0.65);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    backdrop-filter: blur(1px);
+  }
+}
