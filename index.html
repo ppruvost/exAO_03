@@ -5,29 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Analyse Vidéo − Mire</title>
 
-  <!-- Librairie math pour ellipse -->
+  <!-- Librairie pour calculs matriciels -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
 
-  <!-- Scripts d’analyse -->
+  <!-- Nos scripts -->
   <script src="script.js"></script>
   <script src="webcam.js"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:20px; }
+    body { font-family: Arial; background:#f5f5f5; margin:20px; }
     #videoContainer { background:white; padding:15px; border-radius:10px; }
     video { width:100%; max-width:600px; background:black; border-radius:8px; }
+    canvas { position:absolute; top:0; left:0; pointer-events:none; }
     button { margin:10px 5px; padding:10px 15px; background:#333; color:white;
              border:none; border-radius:6px; cursor:pointer; }
   </style>
 </head>
+
 <body>
 
-<h1>Analyse Vidéo Mire − Détection automatique</h1>
+<h1>Analyse Vidéo Mire – Détection automatique</h1>
 
-<div id="videoContainer">
+<div id="videoContainer" style="position:relative;">
   <video id="video" autoplay playsinline></video>
   <canvas id="mireOverlay"></canvas>
-  <p id="calibInfo">Angle : --.-°</p>
+
+  <p id="calibInfo" style="font-size:1.2rem; font-weight:bold;">
+    Angle : --.-°
+  </p>
 
   <button id="initCam">Initialiser Webcam</button>
   <button id="detectMire">Détection instantanée</button>
