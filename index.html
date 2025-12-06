@@ -1,101 +1,51 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Analyse Vidéo − Mire</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Librairie math pour ellipse -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+
+  <!-- Scripts d’analyse -->
+  <script src="script.js"></script>
+  <script src="webcam.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f5f5f5;
-    }
-    #videoContainer, #controls, #charts {
-      margin-top: 20px;
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    video {
-      width: 100%;
-      max-width: 600px;
-      border-radius: 8px;
-      background: black;
-    }
-    button {
-      padding: 10px 15px;
-      margin-right: 10px;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 6px;
-      border: none;
-      background: #333;
-      color: white;
-    }
+    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:20px; }
+    #videoContainer { background:white; padding:15px; border-radius:10px; }
+    video { width:100%; max-width:600px; background:black; border-radius:8px; }
+    button { margin:10px 5px; padding:10px 15px; background:#333; color:white;
+             border:none; border-radius:6px; cursor:pointer; }
   </style>
 </head>
 <body>
 
-<h1>Analyse Vidéo avec Mire</h1>
+<h1>Analyse Vidéo Mire − Détection automatique</h1>
 
 <div id="videoContainer">
-  <h2>Webcam</h2>
   <video id="video" autoplay playsinline></video>
-  <p id="calibInfo"></p>
+  <canvas id="mireOverlay"></canvas>
+  <p id="calibInfo">Angle : --.-°</p>
 
   <button id="initCam">Initialiser Webcam</button>
   <button id="detectMire">Détection instantanée</button>
-  <button id="autoCalibAngle">Auto-calibration + Angle</button>
+  <button id="autoCalibAngle">Auto-calibration + angle</button>
 </div>
 
 <script>
-/* ------------------------------------
-   FONCTIONS DE BASE (évite les erreurs)
---------------------------------------*/
-
-// Initialisation webcam
-window.startWebcamAnalysis = async function () {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    document.getElementById('video').srcObject = stream;
-    console.log("Webcam initialisée.");
-  } catch (err) {
-    console.error("Erreur webcam:", err);
-    alert("Impossible d’accéder à la webcam.");
-  }
-};
-
-// Détection mire — version minimale
-window.detectMireInstantanee = function () {
-  console.log("Détection mire lancée…");
-  alert("Détection mire (placeholder)");
-};
-
-// Calibration angle — version minimale
-window.autoCalibAngle = function () {
-  console.log("Auto calibration…");
-  alert("Auto-calibration (placeholder)");
-};
-
-
-/* ------------------------------------
-   BOUTONS (maintenant fonctionnels)
---------------------------------------*/
 document.getElementById('initCam').addEventListener('click', () => {
-  window.startWebcamAnalysis();
+  startWebcamAnalysis();
 });
 
 document.getElementById('detectMire').addEventListener('click', () => {
-  window.detectMireInstantanee();
+  detectMireInstantanee();
 });
 
 document.getElementById('autoCalibAngle').addEventListener('click', () => {
-  window.autoCalibAngle();
+  autoCalibAngle();
 });
-
 </script>
 
 </body>
