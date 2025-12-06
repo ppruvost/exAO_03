@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Analyse Vidéo − Mire</title>
-  <script src="https://cdn.jsdelivr.net/npm/numeric@1.2.6/numeric.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
       background: #f5f5f5;
     }
-    h1 { margin-bottom: 10px; }
     #videoContainer, #controls, #charts {
       margin-top: 20px;
       background: white;
@@ -19,8 +19,12 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    video { width: 100%; max-width: 600px; border-radius: 8px; background: black; }
-    canvas { margin-top: 20px; max-width: 700px; width: 100%; }
+    video {
+      width: 100%;
+      max-width: 600px;
+      border-radius: 8px;
+      background: black;
+    }
     button {
       padding: 10px 15px;
       margin-right: 10px;
@@ -34,48 +38,65 @@
   </style>
 </head>
 <body>
-  <h1>Analyse Vidéo avec Mire</h1>
 
-  <div id="videoContainer">
-    <h2>Webcam</h2>
-    <video id="video" autoplay playsinline></video>
-    <br /><br />
-    <button id="initCam">Initialiser Webcam</button>
-    <button id="detectMire">Détection instantanée</button>
-    <button id="autoCalibAngle">Auto‑calibration + Angle</button>
-    <p id="calibInfo"></p>
-  </div>
+<h1>Analyse Vidéo avec Mire</h1>
 
-  <div id="controls">
-    <h2>Enregistrement</h2>
-    <button id="startRec">Démarrer Enregistrement</button>
-    <button id="stopRec">Arrêter</button>
-    <p id="recStatus"></p>
-    <video id="recordedVideo" controls></video>
-    <br /><br />
-    <button id="processVideo">Analyser la Vidéo</button>
-    <p id="processStatus"></p>
-    <a id="downloadCSV" href="#" download="donnees.csv" style="display:none;">Télécharger CSV</a>
-  </div>
+<div id="videoContainer">
+  <h2>Webcam</h2>
+  <video id="video" autoplay playsinline></video>
+  <p id="calibInfo"></p>
 
-  <div id="charts">
-    <h2>Résultats</h2>
-    <canvas id="speedChart"></canvas>
-    <canvas id="positionChart"></canvas>
-  </div>
+  <button id="initCam">Initialiser Webcam</button>
+  <button id="detectMire">Détection instantanée</button>
+  <button id="autoCalibAngle">Auto-calibration + Angle</button>
+</div>
 
-  <!-- Script principal -->
-  <script src="webcam.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const initBtn = document.getElementById('initCam');
-      const detectBtn = document.getElementById('detectMire');
-      const autoCalibBtn = document.getElementById('autoCalibAngle');
+<script>
+/* ------------------------------------
+   FONCTIONS DE BASE (évite les erreurs)
+--------------------------------------*/
 
-      initBtn.addEventListener('click', () => window.startWebcamAnalysis());
-      detectBtn.addEventListener('click', () => window.detectMireInstantanee());
-      autoCalibBtn.addEventListener('click', () => window.autoCalibAngle());
-    });
-  </script>
+// Initialisation webcam
+window.startWebcamAnalysis = async function () {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    document.getElementById('video').srcObject = stream;
+    console.log("Webcam initialisée.");
+  } catch (err) {
+    console.error("Erreur webcam:", err);
+    alert("Impossible d’accéder à la webcam.");
+  }
+};
+
+// Détection mire — version minimale
+window.detectMireInstantanee = function () {
+  console.log("Détection mire lancée…");
+  alert("Détection mire (placeholder)");
+};
+
+// Calibration angle — version minimale
+window.autoCalibAngle = function () {
+  console.log("Auto calibration…");
+  alert("Auto-calibration (placeholder)");
+};
+
+
+/* ------------------------------------
+   BOUTONS (maintenant fonctionnels)
+--------------------------------------*/
+document.getElementById('initCam').addEventListener('click', () => {
+  window.startWebcamAnalysis();
+});
+
+document.getElementById('detectMire').addEventListener('click', () => {
+  window.detectMireInstantanee();
+});
+
+document.getElementById('autoCalibAngle').addEventListener('click', () => {
+  window.autoCalibAngle();
+});
+
+</script>
+
 </body>
 </html>
