@@ -1,15 +1,47 @@
-/* EXTRACT EDGE POINTS */
-function extractEdgePoints(video){
-  const w=video.videoWidth,h=video.videoHeight;
+/* ============================
+     SELECTION CAMERA ARRIÈRE
+   ============================ */
+
+async function getBackCameraConstraints(){
+  try {
+    let devices = await navigator.mediaDevices.enumerateDevices();
+    let backCam = devices.find(d =>
+      d.kind === "videoinput" &&
+      /back|rear|environment/i.test(d.label)
+    );
+
+    if(backCam){
+      return { deviceId: { exact: backCam.deviceId } };
+    }
+  } catch(e){}
+
+  // fallback standard
+  return { facingMode: { exact: "environment" } };
+}
+
+/* ============================
+     EXTRACTION CONTOURS
+   ============================ */
+
+function extractEdgePoints(video, crop=null){
+  const w=video.videoWidth, h=video.videoHeight;
+
   const temp=document.createElement('canvas');
   temp.width=w; temp.height=h;
   const ctx=temp.getContext('2d');
   ctx.drawImage(video,0,0,w,h);
+
   const img=ctx.getImageData(0,0,w,h).data;
 
   const pts=[];
-  for(let y=1;y<h-1;y+=2){
-    for(let x=1;x<w-1;x+=2){
+  let x0=0,y0=0,x1=w,y1=h;
+
+  if(crop){
+    x0=crop.x0; y0=crop.y0; x1=crop.x1; y1=crop.y1;
+  }
+
+  for(let y=y0+1;y<y1-1;y+=2){
+    for(let x=x0+1;x<x1-1;x+=2){
       const i=(y*w+x)*4;
       const gx=(img[i+4]-img[i-4]) + (img[i+4*w]-img[i-4*w]);
       const gy=(img[i+4*w]-img[i-4*w]) + (img[i+4]-img[i-4]);
@@ -19,9 +51,13 @@ function extractEdgePoints(video){
   return pts;
 }
 
-/* FIT ELLIPSE */
+/* ============================
+        FIT ELLIPSE
+   ============================ */
+
 function fitEllipse(points){
   if(points.length<20) return null;
+
   const D = points.map(p => [p.x*p.x, p.x*p.y, p.y*p.y, p.x, p.y, 1]);
   const S = numeric.dot(numeric.transpose(D), D);
 
@@ -34,11 +70,13 @@ function fitEllipse(points){
   const C=[[0,0,2],[0,-1,0],[2,0,0]];
 
   const eig=numeric.eig(numeric.dot(numeric.inv(C),M));
-  const eigVecs=eig.E;
-  const a=[eigVecs[0][0],eigVecs[1][0],eigVecs[2][0]];
-  const B=numeric.dot(T,a);
 
-  return {A:a[0],B:a[1],C:a[2],D:B[0],E:B[1],F:B[2]};
+  const EM=eig.E;
+  const A=[ EM[0][0], EM[1][0], EM[2][0] ]; // première colonne
+
+  const B=numeric.dot(T,A);
+
+  return {A:A[0],B:A[1],C:A[2],D:B[0],E:B[1],F:B[2]};
 }
 
 function ellipseParams(c){
@@ -60,22 +98,29 @@ function ellipseParams(c){
   };
 }
 
-/* ANGLE = arccos(b/a), 1 décimale */
+/* Angle réel = arccos(b/a) */
 function computeInclination(a,b){
-  const ang = Math.acos(b/a) * 180/Math.PI;
-  return ang.toFixed(1);
+  return (Math.acos(b/a)*180/Math.PI).toFixed(1);
 }
 
-/* ----- BOUTONS ----- */
+/* ============================
+        ACTIONS BOUTONS
+   ============================ */
+
 async function detectMireInstantanee(){
   const video=document.getElementById('video');
 
-  // 1) Détection du cercle
   const circle=await MireAnalyzer.detectBestCircle(video);
-  if(!circle){ alert("Mire non détectée"); return; }
+  if(!circle){ alert("Cercle non détecté"); return; }
 
-  // 2) extraction contours ellipse
-  const pts=extractEdgePoints(video);
+  const crop={
+    x0:Math.max(0,circle.cx - circle.r - 20),
+    y0:Math.max(0,circle.cy - circle.r - 20),
+    x1:Math.min(video.videoWidth,  circle.cx + circle.r + 20),
+    y1:Math.min(video.videoHeight, circle.cy + circle.r + 20)
+  };
+
+  const pts=extractEdgePoints(video,crop);
   const el=fitEllipse(pts);
   if(!el){ alert("Ellipse non détectée"); return; }
 
@@ -92,7 +137,14 @@ async function autoCalibAngle(){
   const circle=await MireAnalyzer.detectBestCircle(video);
   if(!circle){ return; }
 
-  const pts=extractEdgePoints(video);
+  const crop={
+    x0:Math.max(0,circle.cx - circle.r - 20),
+    y0:Math.max(0,circle.cy - circle.r - 20),
+    x1:Math.min(video.videoWidth,  circle.cx + circle.r + 20),
+    y1:Math.min(video.videoHeight, circle.cy + circle.r + 20)
+  };
+
+  const pts=extractEdgePoints(video,crop);
   const el=fitEllipse(pts);
   if(!el) return;
 
@@ -104,14 +156,25 @@ async function autoCalibAngle(){
   document.getElementById("calibInfo").innerText = "Angle : " + ang + "°";
 }
 
+/* ============================
+    INITIALISATION WEBCAM
+   ============================ */
+
 async function startWebcamAnalysis(){
   const video=document.getElementById('video');
-  const stream=await navigator.mediaDevices.getUserMedia({video:true});
+
+  const backConstraint=await getBackCameraConstraints();
+
+  const stream=await navigator.mediaDevices.getUserMedia({
+    video: backConstraint,
+    audio:false
+  });
+
   video.srcObject=stream;
   await video.play();
 
-  async function loop(){
-    await autoCalibAngle();
+  function loop(){
+    autoCalibAngle();
     requestAnimationFrame(loop);
   }
   loop();
