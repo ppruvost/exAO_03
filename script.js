@@ -1,28 +1,26 @@
-/* Détection principale de la mire : Hough + FFT.
-   Retourne { cx, cy, r, score, mmPerPixel } */
+/* Détection Hough optimisée (rapide smartphones) */
 
 const MIRE_DIAMETER_MM = 85;
 const MAX_PROC_WIDTH = 480;
 
-// Convertit image en niveaux de gris
 function toGrayscale(imgData){
-  const w=imgData.width,h=imgData.height,data=imgData.data;
+  const w=imgData.width,h=imgData.height,d=imgData.data;
   const out=new Uint8ClampedArray(w*h);
-  for(let i=0,j=0;i<data.length;i+=4,j++)
-    out[j]=(0.299*data[i]+0.587*data[i+1]+0.114*data[i+2])|0;
+  for(let i=0,j=0;i<d.length;i+=4,j++)
+    out[j]=(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2])|0;
   return {data:out,width:w,height:h};
 }
 
-function boxBlur(gray,radius=1){
+function boxBlur(gray,r=1){
   const w=gray.width,h=gray.height,src=gray.data;
   const out=new Uint8ClampedArray(w*h);
-  const k=2*radius+1, area=k*k;
+  const k=2*r+1,area=k*k;
   for(let y=0;y<h;y++){
     for(let x=0;x<w;x++){
       let sum=0;
-      for(let dy=-radius;dy<=radius;dy++){
+      for(let dy=-r;dy<=r;dy++){
         const yy=Math.min(h-1,Math.max(0,y+dy));
-        for(let dx=-radius;dx<=radius;dx++){
+        for(let dx=-r;dx<=r;dx++){
           const xx=Math.min(w-1,Math.max(0,x+dx));
           sum+=src[yy*w+xx];
         }
@@ -53,41 +51,37 @@ function sobelMagnitude(gray){
   return {data:out,width:w,height:h};
 }
 
-function edgeBinary(sobel,thresh){
+function edgeBinary(sobel,th){
   const w=sobel.width,h=sobel.height,src=sobel.data;
   const out=new Uint8ClampedArray(w*h);
-  for(let i=0;i<w*h;i++) out[i]=(src[i]>=thresh)?1:0;
+  for(let i=0;i<w*h;i++) out[i]=(src[i]>=th)?1:0;
   return {data:out,width:w,height:h};
 }
 
-// Hough circle simplifié (centre + rayon)
 function houghCircle(edges,rMin,rMax,stepR=2){
   const w=edges.width,h=edges.height,data=edges.data;
   const acc=new Int32Array(w*h);
   let best=null;
 
-  const edgePoints=[];
-  for(let y=0;y<h;y++){
-    for(let x=0;x<w;x++) if(data[y*w+x]) edgePoints.push({x,y});
-  }
-  if(edgePoints.length===0) return null;
+  const pts=[];
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++) if(data[y*w+x]) pts.push({x,y});
+  if(!pts.length) return null;
 
   for(let r=rMin;r<=rMax;r+=stepR){
     acc.fill(0);
-    for(const p of edgePoints){
-      const x0=p.x,y0=p.y;
-      for(let t=0;t<360;t+=6){
+    for(const p of pts){
+      for(let t=0;t<360;t+=8){
         const rad=t*Math.PI/180;
-        const a=Math.round(x0-r*Math.cos(rad));
-        const b=Math.round(y0-r*Math.sin(rad));
+        const a=Math.round(p.x-r*Math.cos(rad));
+        const b=Math.round(p.y-r*Math.sin(rad));
         if(a>=0&&a<w&&b>=0&&b<h) acc[b*w+a]++;
       }
     }
     let max=0,idx=-1;
     for(let i=0;i<w*h;i++) if(acc[i]>max){max=acc[i];idx=i;}
-    if(max>10){
-      const cy=Math.floor(idx/w),cx=idx%w;
-      const score=max/60;
+    if(max>20){
+      const cy=Math.floor(idx/w), cx=idx%w;
+      const score=max/50;
       if(!best||score>best.score) best={cx,cy,r,score};
     }
   }
@@ -108,14 +102,13 @@ async function detectBestCircleFromVideoFrame(video){
   const blur=boxBlur(gray,1);
   const sob=sobelMagnitude(blur);
 
-  let maxG=0;
-  sob.data.forEach(v=>{if(v>maxG)maxG=v;});
+  let maxG=0; for(const v of sob.data) if(v>maxG) maxG=v;
   const edge=edgeBinary(sob,maxG*0.25);
 
   const diag=Math.hypot(temp.width,temp.height);
-  const guessDiam=Math.min(temp.width*0.6,Math.max(20,diag*0.35));
-  const rMin=Math.floor(guessDiam*0.6/2);
-  const rMax=Math.floor(guessDiam*1.4/2);
+  const guess=Math.min(temp.width*0.6,Math.max(20,diag*0.35));
+  const rMin=Math.floor(guess*0.6/2);
+  const rMax=Math.floor(guess*1.4/2);
 
   const best=houghCircle(edge,rMin,rMax,2);
   if(!best) return null;
@@ -134,10 +127,10 @@ async function detectBestCircleFromVideoFrame(video){
 
 async function detectBestCircle(video){
   let best=null;
-  for(let i=0;i<4;i++){
+  for(let i=0;i<3;i++){
     const r=await detectBestCircleFromVideoFrame(video);
     if(r&&(!best||r.score>best.score)) best=r;
-    await new Promise(res=>setTimeout(res,120));
+    await new Promise(res=>setTimeout(res,80));
   }
   return best;
 }
