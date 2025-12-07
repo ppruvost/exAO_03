@@ -25,33 +25,31 @@ h3 { font-size: 1.2rem; }
   position: relative;
   max-width: 640px;
   margin: 0 auto 15px auto;
+
+  overflow: hidden;        /* <--- LE FIX PRINCIPAL */
+  border-radius: 10px;     /* uniformité */
+  background: black;       /* évite flashs blancs */
 }
 
-/* Vidéo + Canvas principal */
-#preview, #previewCanvas {
+/* Vidéo */
+#preview {
+  position: absolute;      /* <--- IMPORTANT */
+  inset: 0;                /* top:0; left:0; right:0; bottom:0 */
   width: 100%;
+  height: 100%;
+  object-fit: cover;       /* Remplir sans bandes */
   display: block;
-  border-radius: 10px;
-  background: black;
-  object-fit: cover;
+  z-index: 1;
 }
 
 /* Canvas overlay (détection) */
 #previewCanvas {
   position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-}
-
-/* Mire optionnelle */
-#mireOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;                /* toujours exactement superposé */
   pointer-events: none;
   width: 100%;
   height: 100%;
+  z-index: 2;
 }
 
 /* ========================================
