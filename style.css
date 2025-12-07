@@ -27,14 +27,24 @@ h3 { font-size: 1.2rem; }
   margin: 0 auto 15px auto;
 }
 
+/* Vidéo + Canvas principal */
 #preview, #previewCanvas {
   width: 100%;
+  display: block;
   border-radius: 10px;
   background: black;
-  display: block;
   object-fit: cover;
 }
 
+/* Canvas overlay (détection) */
+#previewCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/* Mire optionnelle */
 #mireOverlay {
   position: absolute;
   top: 0;
@@ -73,6 +83,11 @@ button:active {
   transform: scale(0.96);
 }
 
+button:disabled {
+  background: #777;
+  cursor: not-allowed;
+}
+
 /* ========================================
    INFORMATIONS / LABELS
    ======================================== */
@@ -90,7 +105,11 @@ button:active {
   font-size: 1rem;
 }
 
-#rampAngleDisplay, #pxToMeterDisplay, #nSamples, #aEstimated, #aTheory {
+#rampAngleDisplay,
+#pxToMeterDisplay,
+#nSamples,
+#aEstimated,
+#aTheory {
   font-weight: bold;
   color: #444;
 }
@@ -111,30 +130,20 @@ canvas {
    ======================================== */
 @media (max-width: 600px) {
   body { padding: 10px; }
+
   h1 { font-size: 1.3rem; }
   h2 { font-size: 1.2rem; }
   h3 { font-size: 1rem; }
 
-  #preview, #previewCanvas {
-    border-radius: 8px;
-  }
-
   button {
     width: 100%;
-    margin: 5px 0;
+    margin: 6px 0;
     padding: 12px;
     font-size: 1rem;
   }
 
-  .info { padding: 8px; font-size: 0.95rem; }
-}
-
-/* ========================================
-   OPTIONNEL : OVERLAY DE BOULE / BALLE
-   ======================================== */
-#previewCanvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
+  .info {
+    padding: 8px;
+    font-size: 0.95rem;
+  }
 }
