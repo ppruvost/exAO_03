@@ -329,6 +329,80 @@ slowMoBtn.addEventListener("click",()=>{
     if(slowMotionFactor===1){ slowMotionFactor=0.25; slowMoBtn.textContent="Ralenti ×1 (normal)"; }
     else{ slowMotionFactor=1; slowMoBtn.textContent="Ralenti ×0.25"; }
 });
+/* -------------------------
+   GRAPHIQUES
+------------------------- */
+function buildCharts(samples, aEst) {
+    const t = samples.map(s=>s.t);
+    const x = samples.map(s=>s.x);
+    const y = samples.map(s=>s.y);
+    const vx = samples.map(s=>s.vx);
+    const vy = samples.map(s=>s.vy);
+
+    const posCanvas = document.getElementById("posChartCanvas");
+    if(posCanvas){
+        const ctxPos = posCanvas.getContext("2d");
+        ctxPos.clearRect(0,0,posCanvas.width,posCanvas.height);
+        ctxPos.beginPath(); ctxPos.strokeStyle="red"; ctxPos.lineWidth=2;
+        for(let i=0;i<t.length;i++){
+            const px = i*(posCanvas.width/t.length);
+            const py = posCanvas.height - (y[i]/Math.max(...y))*posCanvas.height;
+            if(i===0) ctxPos.moveTo(px,py); else ctxPos.lineTo(px,py);
+        }
+        ctxPos.stroke();
+    }
+
+    const velCanvas = document.getElementById("velChartCanvas");
+    if(velCanvas){
+        const ctxVel = velCanvas.getContext("2d");
+        ctxVel.clearRect(0,0,velCanvas.width,velCanvas.height);
+        ctxVel.beginPath(); ctxVel.strokeStyle="blue"; ctxVel.lineWidth=2;
+        for(let i=0;i<t.length;i++){
+            const px = i*(velCanvas.width/t.length);
+            const py = velCanvas.height - (Math.hypot(vx[i],vy[i])/Math.max(...vx.concat(vy)))*velCanvas.height;
+            if(i===0) ctxVel.moveTo(px,py); else ctxVel.lineTo(px,py);
+        }
+        ctxVel.stroke();
+    }
+}
+
+/* MRU / MRUV documents */
+function buildDoc2_MRU(samples){
+    // MRU : vitesse constante sur axe ramp
+    const t = samples.map(s=>s.t);
+    const x = samples.map(s=>s.x);
+    console.log("MRU document:", t.length, "samples", x.length, "positions");
+    // ici on peut générer graphique supplémentaire ou tableau HTML
+}
+
+function buildDoc3_MRUV(samples){
+    // MRUV : accélération non nulle
+    const t = samples.map(s=>s.t);
+    const y = samples.map(s=>s.y);
+    console.log("MRUV document:", t.length, "samples", y.length, "positions");
+    // ici on peut générer graphique supplémentaire ou tableau HTML
+}
+
+/* -------------------------
+   RAMPE / ANGLE DYNAMIQUE
+------------------------- */
+function detectRampPoints(imgData){
+    // placeholder : retourne un tableau de points {x,y} de la rampe
+    // peut être basé sur couleur ou luminosité
+    return []; 
+}
+
+function computePrincipalAngleDeg(points){
+    if(points.length<2) return 0;
+    const x0=points[0].x, y0=points[0].y;
+    const x1=points[points.length-1].x, y1=points[points.length-1].y;
+    const angleRad = Math.atan2(y1-y0, x1-x0);
+    return angleRad*180/Math.PI;
+}
+
+function displayRampAngle(angleDeg){
+    if(rampAngleDisplay) rampAngleDisplay.textContent = `Angle rampe : ${angleDeg.toFixed(2)}°`;
+}
 
 /* -------------------------
    EXPORT CSV
