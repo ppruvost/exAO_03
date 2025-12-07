@@ -2,38 +2,43 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>exAO_03 - Etude du mouvement sur un plan incliné</title>
+<title>exAO_03 - Étude du mouvement sur un plan incliné</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<h2>exAO_03 - Mouvement Rectiligne sur un plan incliné</h2>
+<h2>exAO_03 – Mouvement rectiligne sur un plan incliné</h2>
 
 <!-- VIDEO WRAPPER -->
 <div id="videoWrapper">
-    <video id="preview" autoplay muted></video>
+    <video id="preview" autoplay muted playsinline></video>
     <canvas id="previewCanvas" width="640" height="480"></canvas>
 </div>
 
 <!-- CONTROLS -->
 <div id="controls">
-    <button id="startRecBtn">Démarrer enregistrement</button>
-    <button id="stopRecBtn" disabled>Stop</button>
-    <button id="loadFileBtn">Charger fichier</button>
-    <input type="file" id="fileInput" style="display:none" accept="video/*">
+    <button id="startRecBtn">Démarrer l’enregistrement</button>
+    <button id="stopRecBtn" disabled>Arrêter</button>
+
+    <button id="loadFileBtn">Charger une vidéo</button>
+    <input type="file" id="fileInput" accept="video/*" style="display:none">
+
     <button id="processBtn" disabled>Traiter la vidéo</button>
     <button id="slowMoBtn" disabled>Ralenti ×1</button>
+
     <button id="exportCSVBtn" disabled>Exporter CSV</button>
 </div>
 
 <!-- INFORMATIONS -->
 <div class="info">
-    <p id="recState">État : -</p>
-    <p id="blobSize">Taille vidéo : -</p>
+    <p id="recState">État : —</p>
+    <p id="blobSize">Taille vidéo : —</p>
     <p>Nombre d'échantillons : <span id="nSamples">0</span></p>
+
     <p>Accélération estimée : <span id="aEstimated">—</span> m/s²</p>
     <p>Accélération théorique : <span id="aTheory">—</span> m/s²</p>
+
     <p id="regEquation">Équation : —</p>
     <p id="pxToMeterDisplay">Calibration : —</p>
     <p id="rampAngleDisplay">Angle rampe : —</p>
