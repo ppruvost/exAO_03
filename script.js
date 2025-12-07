@@ -668,6 +668,10 @@ function buildPositionChart(samples, fit) {
       },
     },
   });
+
+  // Afficher l'équation sous le graphique
+  const positionEquationElement = document.getElementById("positionEquation");
+  positionEquationElement.textContent = `Équation : y(t) = ${fit.a.toFixed(4)}·t² + ${fit.b.toFixed(4)}·t + ${fit.c.toFixed(4)}`;
 }
 
 /* -------------------------
