@@ -1,0 +1,74 @@
+body {
+  font-family: Arial, sans-serif;
+  background:#fafafa;
+  margin:0;
+  padding:0;
+}
+
+header {
+  background:#333;
+  color:white;
+  padding:12px;
+}
+
+main {
+  width:90%;
+  margin:auto;
+}
+
+.camRow {
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+video, canvas {
+  width:640px;
+  height:480px;
+  background:black;
+  border:1px solid #ccc;
+}
+
+.controls, .meta {
+  margin-top:10px;
+}
+
+button {
+  padding:6px 16px;
+  margin-right:6px;
+  cursor:pointer;
+}
+
+#slowMoBtn {
+  background:#444;
+  color:white;
+  padding:8px 14px;
+  border-radius:6px;
+}
+
+#slowMoBtn:disabled {
+  opacity:0.5;
+  cursor:not-allowed;
+}
+
+#results {
+  margin-top:40px;
+}
+
+canvas {
+  background:white;
+  border:1px solid #ccc;
+  margin-top:10px;
+  max-width:900px;
+}
+
+table {
+  border-collapse:collapse;
+  width:100%;
+  margin-top:10px;
+}
+
+table th, table td {
+  border:1px solid #aaa;
+  padding:4px;
+}
