@@ -357,7 +357,6 @@ processBtn.addEventListener("click", async () => {
   aTheorySpan.textContent = "—";
   regEquationP.textContent = "Équation : —";
   exportCSVBtn.disabled = true;
-
   const vid = document.createElement("video");
   vid.src = videoURL;
   vid.muted = true;
@@ -365,17 +364,14 @@ processBtn.addEventListener("click", async () => {
     vid.onloadedmetadata = () => res();
     vid.onerror = (e) => rej(e);
   });
-
   const stepSec = Math.max(1, Number(frameStepMsInput.value) || 10) / 1000;
   const kf = createKalman();
   let initialized = false;
   let prevT = 0;
-
   function processFrame() {
     try {
       ctx.drawImage(vid, 0, 0, previewCanvas.width, previewCanvas.height);
       const img = ctx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
-
       if (!pxToMeter) {
         const cal = estimatePxToMeter(img);
         if (cal) {
@@ -384,7 +380,6 @@ processBtn.addEventListener("click", async () => {
           if (pxDisp) pxDisp.textContent = pxToMeter.toFixed(6) + " m/px";
         }
       }
-
       const pos = detectBall(img, 2);
       const t = vid.currentTime * slowMotionFactor;
       if (pos) {
@@ -393,7 +388,6 @@ processBtn.addEventListener("click", async () => {
         const x_m = pxToMeter ? x_px * pxToMeter : NaN;
         const y_m = pxToMeter ? y_px * pxToMeter : NaN;
         samplesRaw.push({ t, x_px, y_px, x_m, y_m });
-
         if (pxToMeter && !isNaN(x_m) && !isNaN(y_m)) {
           const z = [[x_m], [y_m]];
           if (!initialized) {
@@ -417,7 +411,6 @@ processBtn.addEventListener("click", async () => {
           nSamplesSpan.textContent = samplesRaw.length.toString();
         }
       }
-
       if (vid.currentTime + 0.0001 < vid.duration) {
         vid.currentTime = Math.min(vid.duration, vid.currentTime + stepSec);
       } else {
@@ -430,7 +423,6 @@ processBtn.addEventListener("click", async () => {
       return;
     }
   }
-
   vid.onseeked = processFrame;
   vid.currentTime = 0;
 });
@@ -440,7 +432,7 @@ processBtn.addEventListener("click", async () => {
    ------------------------- */
 function finalize() {
   if (samplesFilt.length < 3) {
-    alert("Données insuffisantes après filtrage (vérifie détection / calibration).");
+    alert("Données insuffisantes après filtrage (vérifiez la détection / calibration).");
     return;
   }
 
@@ -451,9 +443,7 @@ function finalize() {
   const fit = fitQuadratic(T, Y);
 
   // Affichage de l'équation
-  regEquationP.textContent = `y(t) = ${fit.a.toFixed(4)}·t² + ${fit.b.toFixed(
-    4
-  )}·t + ${fit.c.toFixed(4)}`;
+  regEquationP.textContent = `y(t) = ${fit.a.toFixed(4)}·t² + ${fit.b.toFixed(4)}·t + ${fit.c.toFixed(4)}`;
 
   // Calcul de l'accélération estimée
   const aEst = 2 * fit.a;
@@ -465,7 +455,7 @@ function finalize() {
 
   // Construction des graphiques
   buildCharts(samplesFilt, aEst);
-  buildPositionChart(samplesFilt, fit);
+  setTimeout(() => buildPositionChart(samplesFilt, fit), 100); // Délai pour s'assurer que le canvas est prêt
 
   exportCSVBtn.disabled = false;
 }
@@ -628,6 +618,12 @@ function buildPositionChart(samples, fit) {
   const Y_fit = T.map((t) => fit.a * t * t + fit.b * t + fit.c);
 
   const ctx = document.getElementById("positionChart").getContext("2d");
+
+  // Détruire le graphique précédent s'il existe
+  if (positionChart) {
+    positionChart.destroy();
+  }
+
   positionChart = new Chart(ctx, {
     type: "scatter",
     data: {
