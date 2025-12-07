@@ -231,12 +231,15 @@ function inv2x2(M) {
 async function startPreview() {
   try {
     videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480 },
+      video: { width: 640, height: 480 }
     });
     preview.srcObject = videoStream;
     previewLoop();
+    return true;
   } catch (e) {
-    console.warn("preview failed", e);
+    console.error("Erreur accès caméra :", e);
+    alert("Impossible d'accéder à la caméra. Vérifiez les permissions ou utilisez un navigateur compatible (Chrome, Firefox, Edge).");
+    return false;
   }
 }
 function previewLoop() {
@@ -259,21 +262,12 @@ function previewLoop() {
    ------------------------- */
 startBtn.addEventListener("click", async () => {
   if (!videoStream) {
-    try {
-      videoStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
-      });
-      preview.srcObject = videoStream;
-    } catch (e) {
-      alert("Accès caméra refusé");
-      return;
-    }
+    const success = await startPreview();
+    if (!success) return;
   }
   recordedChunks = [];
   try {
-    mediaRecorder = new MediaRecorder(videoStream, {
-      mimeType: "video/webm;codecs=vp9",
-    });
+    mediaRecorder = new MediaRecorder(videoStream, { mimeType: "video/webm;codecs=vp9" });
   } catch (e) {
     mediaRecorder = new MediaRecorder(videoStream);
   }
@@ -285,35 +279,23 @@ startBtn.addEventListener("click", async () => {
     videoURL = URL.createObjectURL(recordedBlob);
     processBtn.disabled = false;
     slowMoBtn.disabled = false;
-    blobSizeP.textContent = `Vidéo enregistrée (${(
-      recordedBlob.size /
-      1024 /
-      1024
-    ).toFixed(2)} MB)`;
+    blobSizeP.textContent = `Vidéo enregistrée (${(recordedBlob.size / 1024 / 1024).toFixed(2)} MB)`;
   };
   mediaRecorder.start();
   recStateP.textContent = "État : enregistrement...";
   startBtn.disabled = true;
   stopBtn.disabled = false;
 });
+
 stopBtn.addEventListener("click", () => {
-  if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
-  recStateP.textContent = "État : arrêté";
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+    recStateP.textContent = "État : arrêté";
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
 });
-loadBtn.addEventListener("click", () => fileInput.click());
-fileInput.addEventListener("change", () => {
-  const f = fileInput.files[0];
-  if (!f) return;
-  recordedBlob = f;
-  videoURL = URL.createObjectURL(f);
-  processBtn.disabled = false;
-  slowMoBtn.disabled = false;
-  blobSizeP.textContent = `Fichier chargé (${(f.size / 1024 / 1024).toFixed(
-    2
-  )} MB)`;
-});
+
 /* -------------------------
    Process recorded video (frame-by-frame)
    ------------------------- */
@@ -646,3 +628,9 @@ slowMoBtn.addEventListener("click", () => {
 });
 // Initialisation
 startPreview();
+
+// À la fin de script.js
+document.addEventListener('DOMContentLoaded', async () => {
+  await startPreview();
+});
+
