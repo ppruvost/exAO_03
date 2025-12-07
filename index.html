@@ -1,57 +1,62 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analyse Vidéo − Mire</title>
-
-  <!-- Librairie pour calculs matriciels -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-
-  <!-- Nos scripts -->
-  <script src="script.js"></script>
-  <script src="webcam.js"></script>
-
-  <style>
-    body { font-family: Arial; background:#f5f5f5; margin:20px; }
-    #videoContainer { background:white; padding:15px; border-radius:10px; }
-    video { width:100%; max-width:600px; background:black; border-radius:8px; }
-    canvas { position:absolute; top:0; left:0; pointer-events:none; }
-    button { margin:10px 5px; padding:10px 15px; background:#333; color:white;
-             border:none; border-radius:6px; cursor:pointer; }
-  </style>
+<meta charset="UTF-8">
+<title>exAO_02 - MRUA/MRUV</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 20px; }
+    video, canvas { border: 1px solid #444; margin: 5px; background: #fff; }
+    button { margin: 5px; padding: 8px 12px; }
+    .info { margin: 5px 0; }
+    #controls { margin-bottom: 15px; }
+</style>
 </head>
-
 <body>
 
-<h1>Analyse Vidéo Mire – Détection automatique</h1>
+<h2>exAO_02 - Mouvement Rectiligne</h2>
 
-<div id="videoContainer" style="position:relative;">
-  <video id="video" autoplay playsinline></video>
-  <canvas id="mireOverlay"></canvas>
+<!-- VIDEO PREVIEW -->
+<video id="preview" width="320" height="240" autoplay muted></video>
+<canvas id="previewCanvas" width="640" height="480"></canvas>
 
-  <p id="calibInfo" style="font-size:1.2rem; font-weight:bold;">
-    Angle : --.-°
-  </p>
-
-  <button id="initCam">Initialiser Webcam</button>
-  <button id="detectMire">Détection instantanée</button>
-  <button id="autoCalibAngle">Auto-calibration + angle</button>
+<div id="controls">
+    <button id="startRecBtn">Démarrer enregistrement</button>
+    <button id="stopRecBtn" disabled>Stop</button>
+    <button id="loadFileBtn">Charger fichier</button>
+    <input type="file" id="fileInput" style="display:none" accept="video/*">
+    <button id="processBtn" disabled>Traiter la vidéo</button>
+    <button id="slowMoBtn" disabled>Ralenti ×1</button>
+    <button id="exportCSVBtn" disabled>Exporter CSV</button>
 </div>
 
-<script>
-document.getElementById('initCam').addEventListener('click', () => {
-  startWebcamAnalysis();
-});
+<div class="info">
+    <p id="recState">État : -</p>
+    <p id="blobSize">Taille vidéo : -</p>
+    <p>Nombre d'échantillons : <span id="nSamples">0</span></p>
+    <p>Accélération estimée : <span id="aEstimated">—</span> m/s²</p>
+    <p>Accélération théorique : <span id="aTheory">—</span> m/s²</p>
+    <p id="regEquation">Équation : —</p>
+    <p id="pxToMeterDisplay">Calibration : —</p>
+    <p id="rampAngleDisplay">Angle rampe : —</p>
+</div>
 
-document.getElementById('detectMire').addEventListener('click', () => {
-  detectMireInstantanee();
-});
+<div>
+    <h3>Graphiques</h3>
+    <canvas id="posChartCanvas" width="600" height="200"></canvas>
+    <canvas id="velChartCanvas" width="600" height="200"></canvas>
+</div>
 
-document.getElementById('autoCalibAngle').addEventListener('click', () => {
-  autoCalibAngle();
-});
-</script>
+<div>
+    <h3>Documents MRU / MRUV</h3>
+    <canvas id="doc2Chart" width="600" height="200"></canvas>
+    <canvas id="doc3Chart" width="600" height="200"></canvas>
+</div>
+
+<!-- Chart.js (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Ton script.js -->
+<script src="script.js"></script>
 
 </body>
 </html>
