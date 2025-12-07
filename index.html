@@ -3,22 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <title>exAO_02 - MRUA/MRUV</title>
-<style>
-    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 20px; }
-    video, canvas { border: 1px solid #444; margin: 5px; background: #fff; }
-    button { margin: 5px; padding: 8px 12px; }
-    .info { margin: 5px 0; }
-    #controls { margin-bottom: 15px; }
-</style>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <h2>exAO_02 - Mouvement Rectiligne</h2>
 
-<!-- VIDEO PREVIEW -->
-<video id="preview" width="320" height="240" autoplay muted></video>
-<canvas id="previewCanvas" width="640" height="480"></canvas>
+<!-- VIDEO WRAPPER -->
+<div id="videoWrapper">
+    <video id="preview" autoplay muted></video>
+    <canvas id="previewCanvas" width="640" height="480"></canvas>
+</div>
 
+<!-- CONTROLS -->
 <div id="controls">
     <button id="startRecBtn">Démarrer enregistrement</button>
     <button id="stopRecBtn" disabled>Stop</button>
@@ -29,6 +27,7 @@
     <button id="exportCSVBtn" disabled>Exporter CSV</button>
 </div>
 
+<!-- INFORMATIONS -->
 <div class="info">
     <p id="recState">État : -</p>
     <p id="blobSize">Taille vidéo : -</p>
@@ -40,10 +39,11 @@
     <p id="rampAngleDisplay">Angle rampe : —</p>
 </div>
 
+<!-- GRAPHIQUES -->
 <div>
     <h3>Graphiques</h3>
-    <canvas id="posChartCanvas" width="600" height="200"></canvas>
-    <canvas id="velChartCanvas" width="600" height="200"></canvas>
+    <canvas id="posChart" width="600" height="200"></canvas>
+    <canvas id="velChart" width="600" height="200"></canvas>
 </div>
 
 <div>
@@ -52,10 +52,7 @@
     <canvas id="doc3Chart" width="600" height="200"></canvas>
 </div>
 
-<!-- Chart.js (CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Ton script.js -->
+<!-- SCRIPT PRINCIPAL -->
 <script src="script.js"></script>
 
 </body>
