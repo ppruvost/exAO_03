@@ -10,6 +10,60 @@
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    /* >>> CORRECTIONS ESSENTIELLES <<< */
+
+    /* wrapper vidéo */
+    #videoWrapper {
+        position: relative;
+        width: 640px;
+        height: 480px;
+        margin-bottom: 15px;
+        background: #000; /* évite le fond blanc si la vidéo tarde */
+    }
+
+    /* vidéo visible + dimensionnée */
+    #preview {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 640px;
+        height: 480px;
+        z-index: 1;
+        background: #000;
+    }
+
+    /* canvas superposé */
+    #previewCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 640px;
+        height: 480px;
+        z-index: 2;
+        pointer-events: none; /* important : ne bloque pas la vidéo */
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f4f4f4;
+        color: #333;
+    }
+
+    #controls {
+        margin-bottom: 20px;
+    }
+
+    .info {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+</style>
+
 </head>
 <body>
 
