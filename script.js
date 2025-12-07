@@ -6,13 +6,11 @@
  * - Overlay temps réel, traitement vidéo frame-by-frame
  * - Ralenti ×0.25, export CSV, Chart.js
  ************************************************************/
-
 /* -------------------------
    CONFIG
    ------------------------- */
 const REAL_DIAM_M = 0.15; // 15 cm
 const MIN_PIXELS_FOR_DETECT = 40;
-
 /* -------------------------
    STATE
    ------------------------- */
@@ -24,7 +22,7 @@ let samplesRaw = [];   // {t, x_px, y_px, x_m, y_m}
 let samplesFilt = [];  // {t, x, y, vx, vy}
 let slowMotionFactor = 1;
 let mediaRecorder = null;
-
+let videoStream = null;
 /* -------------------------
    DOM
    ------------------------- */
@@ -48,13 +46,11 @@ const aEstimatedSpan = document.getElementById("aEstimated");
 const aTheorySpan = document.getElementById("aTheory");
 const regEquationP = document.getElementById("regEquation");
 const exportCSVBtn = document.getElementById("exportCSVBtn");
-
 /* Charts */
 let posChart = null;
 let velChart = null;
 let fitChart = null;
 let positionChart = null;
-
 /* -------------------------
    Utilities: RGB -> HSV
    ------------------------- */
@@ -81,7 +77,6 @@ function rgbToHsv(r, g, b) {
   }
   return { h, s, v };
 }
-
 /* -------------------------
    Detection: tuned HSV for light brown / ochre ~ (230,190,40)
    ------------------------- */
@@ -99,10 +94,9 @@ function detectBall(imgData, stride = 2) {
       const g = data[i + 1];
       const b = data[i + 2];
       const hsv = rgbToHsv(r, g, b);
-      // Ajustez ces valeurs selon la couleur de votre balle
       const ok = hsv.h >= 25 && hsv.h <= 50 && hsv.s >= 0.3 && hsv.v >= 0.5;
       if (!ok) continue;
-      if (r + g + b < 120) continue; // Évite les zones trop sombres
+      if (r + g + b < 120) continue;
       sumX += x;
       sumY += y;
       count++;
@@ -111,7 +105,6 @@ function detectBall(imgData, stride = 2) {
   if (count < MIN_PIXELS_FOR_DETECT) return null;
   return { x: sumX / count, y: sumY / count, count };
 }
-
 /* -------------------------
    Calibration: estimate pixels->meters using bounding box of candidate pixels
    ------------------------- */
@@ -147,7 +140,6 @@ function estimatePxToMeter(imgData) {
   if (diamPx <= 2) return null;
   return REAL_DIAM_M / diamPx;
 }
-
 /* -------------------------
    Simple Kalman 2D (state [x, vx, y, vy])
    ------------------------- */
@@ -164,7 +156,6 @@ function createKalman() {
   ];
   const H = [[1, 0, 0, 0], [0, 0, 1, 0]];
   const R = [[1e-6, 0], [0, 1e-6]];
-
   function predict(dt) {
     const F = [
       [1, dt, 0, 0],
@@ -175,7 +166,6 @@ function createKalman() {
     x = matMul(F, x);
     P = add(matMul(matMul(F, P), transpose(F)), Q);
   }
-
   function update(z) {
     const y_resid = sub(z, matMul(H, x));
     const S = add(matMul(matMul(H, P), transpose(H)), R);
@@ -185,30 +175,24 @@ function createKalman() {
     const KH = matMul(K, H);
     P = matMul(sub(I, KH), P);
   }
-
   function setFromMeasurement(z) {
     x = [[z[0][0]], [0], [z[1][0]], [0]];
     P = identity(4, 1e-1);
   }
-
   function getState() {
     return { x: x[0][0], vx: x[1][0], y: x[2][0], vy: x[3][0] };
   }
-
   return { predict, update, getState, setFromMeasurement };
 }
-
 /* Matrix helpers */
 function identity(n, scale = 1) {
   return Array.from({ length: n }, (_, i) =>
     Array.from({ length: n }, (_, j) => (i === j ? scale : 0))
   );
 }
-
 function transpose(A) {
   return A[0].map((_, c) => A.map((r) => r[c]));
 }
-
 function matMul(A, B) {
   const aR = A.length;
   const aC = A[0].length;
@@ -226,15 +210,12 @@ function matMul(A, B) {
   }
   return C;
 }
-
 function add(A, B) {
   return A.map((row, i) => row.map((v, j) => v + B[i][j]));
 }
-
 function sub(A, B) {
   return A.map((row, i) => row.map((v, j) => v - B[i][j]));
 }
-
 function inv2x2(M) {
   const a = M[0][0];
   const b = M[0][1];
@@ -244,22 +225,20 @@ function inv2x2(M) {
   if (Math.abs(det) < 1e-12) return [[1e12, 0], [0, 1e12]];
   return [[d / det, -b / det], [-c / det, a / det]];
 }
-
 /* -------------------------
    Camera preview + overlay (real-time)
    ------------------------- */
 async function startPreview() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
+    videoStream = await navigator.mediaDevices.getUserMedia({
       video: { width: 640, height: 480 },
     });
-    preview.srcObject = stream;
+    preview.srcObject = videoStream;
     previewLoop();
   } catch (e) {
     console.warn("preview failed", e);
   }
 }
-
 function previewLoop() {
   if (preview.readyState >= 2) {
     ctx.drawImage(preview, 0, 0, previewCanvas.width, previewCanvas.height);
@@ -275,17 +254,16 @@ function previewLoop() {
   }
   requestAnimationFrame(previewLoop);
 }
-
 /* -------------------------
    Recording handlers
    ------------------------- */
 startBtn.addEventListener("click", async () => {
-  if (!preview.srcObject) {
+  if (!videoStream) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      videoStream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480 },
       });
-      preview.srcObject = stream;
+      preview.srcObject = videoStream;
     } catch (e) {
       alert("Accès caméra refusé");
       return;
@@ -293,11 +271,11 @@ startBtn.addEventListener("click", async () => {
   }
   recordedChunks = [];
   try {
-    mediaRecorder = new MediaRecorder(preview.srcObject, {
+    mediaRecorder = new MediaRecorder(videoStream, {
       mimeType: "video/webm;codecs=vp9",
     });
   } catch (e) {
-    mediaRecorder = new MediaRecorder(preview.srcObject);
+    mediaRecorder = new MediaRecorder(videoStream);
   }
   mediaRecorder.ondataavailable = (e) => {
     if (e.data && e.data.size) recordedChunks.push(e.data);
@@ -318,16 +296,13 @@ startBtn.addEventListener("click", async () => {
   startBtn.disabled = true;
   stopBtn.disabled = false;
 });
-
 stopBtn.addEventListener("click", () => {
   if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
   recStateP.textContent = "État : arrêté";
   startBtn.disabled = false;
   stopBtn.disabled = true;
 });
-
 loadBtn.addEventListener("click", () => fileInput.click());
-
 fileInput.addEventListener("change", () => {
   const f = fileInput.files[0];
   if (!f) return;
@@ -339,7 +314,6 @@ fileInput.addEventListener("change", () => {
     2
   )} MB)`;
 });
-
 /* -------------------------
    Process recorded video (frame-by-frame)
    ------------------------- */
@@ -426,7 +400,6 @@ processBtn.addEventListener("click", async () => {
   vid.onseeked = processFrame;
   vid.currentTime = 0;
 });
-
 /* -------------------------
    Finalize analysis: compute a, update charts
    ------------------------- */
@@ -436,33 +409,19 @@ function finalize() {
     alert("Données insuffisantes après filtrage (vérifiez la détection / calibration).");
     return;
   }
-  // ...
-}
-
   const T = samplesFilt.map((s) => s.t);
   const Y = samplesFilt.map((s) => s.y);
-
-  // Ajustement quadratique
   const fit = fitQuadratic(T, Y);
-
-  // Affichage de l'équation
   regEquationP.textContent = `y(t) = ${fit.a.toFixed(4)}·t² + ${fit.b.toFixed(4)}·t + ${fit.c.toFixed(4)}`;
-
-  // Calcul de l'accélération estimée
   const aEst = 2 * fit.a;
   const alphaDeg = Number(angleInput.value) || 0;
   const aTheory = 9.81 * Math.sin((alphaDeg * Math.PI) / 180);
-
   aEstimatedSpan.textContent = aEst.toFixed(4);
   aTheorySpan.textContent = aTheory.toFixed(4);
-
-  // Construction des graphiques
   buildCharts(samplesFilt, aEst);
-  setTimeout(() => buildPositionChart(samplesFilt, fit), 100); // Délai pour s'assurer que le canvas est prêt
-
+  setTimeout(() => buildPositionChart(samplesFilt, fit), 100);
   exportCSVBtn.disabled = false;
 }
-
 /* -------------------------
    Fit quadratic function (y = a*t^2 + b*t + c)
    ------------------------- */
@@ -475,14 +434,12 @@ function fitQuadratic(T, Y) {
   let sumY = 0;
   let sumTY = 0;
   let sumT2Y = 0;
-
   for (let i = 0; i < n; i++) {
     const t = T[i];
     const y = Y[i];
     const t2 = t * t;
     const t3 = t2 * t;
     const t4 = t3 * t;
-
     sumT += t;
     sumT2 += t2;
     sumT3 += t3;
@@ -491,42 +448,33 @@ function fitQuadratic(T, Y) {
     sumTY += t * y;
     sumT2Y += t2 * y;
   }
-
   const A = [
     [sumT4, sumT3, sumT2],
     [sumT3, sumT2, sumT],
     [sumT2, sumT, n],
   ];
   const B = [sumT2Y, sumTY, sumY];
-
-  // Résolution du système linéaire (méthode de Cramer)
   const detA =
     A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) -
     A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) +
     A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
-
   const detA1 =
     B[0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) -
     A[0][1] * (B[1] * A[2][2] - A[1][2] * B[2]) +
     A[0][2] * (B[1] * A[2][1] - A[1][1] * B[2]);
-
   const detA2 =
     A[0][0] * (B[1] * A[2][2] - A[1][2] * B[2]) -
     B[0] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) +
     A[0][2] * (A[1][0] * B[2] - B[1] * A[2][0]);
-
   const detA3 =
     A[0][0] * (A[1][1] * B[2] - B[1] * A[2][1]) -
     A[0][1] * (A[1][0] * B[2] - B[1] * A[2][0]) +
     B[0] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
-
   const a = detA1 / detA;
   const b = detA2 / detA;
   const c = detA3 / detA;
-
   return { a, b, c };
 }
-
 /* -------------------------
    Build charts (filtered data)
    ------------------------- */
@@ -534,8 +482,6 @@ function buildCharts(filteredSamples, aEst) {
   const T = filteredSamples.map((s) => s.t);
   const Y = filteredSamples.map((s) => s.y);
   const V = filteredSamples.map((s) => Math.hypot(s.vx, s.vy));
-
-  // Position chart
   if (posChart) posChart.destroy();
   posChart = new Chart(document.getElementById("posChart"), {
     type: "line",
@@ -557,8 +503,6 @@ function buildCharts(filteredSamples, aEst) {
       },
     },
   });
-
-  // Velocity chart
   if (velChart) velChart.destroy();
   velChart = new Chart(document.getElementById("velChart"), {
     type: "line",
@@ -580,8 +524,6 @@ function buildCharts(filteredSamples, aEst) {
       },
     },
   });
-
-  // Fit chart
   const points = T.map((t, i) => ({ x: t, y: V[i] }));
   const fitLine = T.map((t) => ({ x: t, y: aEst * t }));
   if (fitChart) fitChart.destroy();
@@ -611,7 +553,6 @@ function buildCharts(filteredSamples, aEst) {
     },
   });
 }
-
 /* -------------------------
    Build position chart with quadratic fit
    ------------------------- */
@@ -619,14 +560,10 @@ function buildPositionChart(samples, fit) {
   const T = samples.map((s) => s.t);
   const Y = samples.map((s) => s.y);
   const Y_fit = T.map((t) => fit.a * t * t + fit.b * t + fit.c);
-
   const ctx = document.getElementById("positionChart").getContext("2d");
-
-  // Détruire le graphique précédent s'il existe
   if (positionChart) {
     positionChart.destroy();
   }
-
   positionChart = new Chart(ctx, {
     type: "scatter",
     data: {
@@ -668,12 +605,9 @@ function buildPositionChart(samples, fit) {
       },
     },
   });
-
-  // Afficher l'équation sous le graphique
   const positionEquationElement = document.getElementById("positionEquation");
   positionEquationElement.textContent = `Équation : y(t) = ${fit.a.toFixed(4)}·t² + ${fit.b.toFixed(4)}·t + ${fit.c.toFixed(4)}`;
 }
-
 /* -------------------------
    Export CSV (filtered)
    ------------------------- */
@@ -698,7 +632,6 @@ exportCSVBtn.addEventListener("click", () => {
   a.click();
   a.remove();
 });
-
 /* -------------------------
    Ralenti toggle
    ------------------------- */
@@ -711,3 +644,5 @@ slowMoBtn.addEventListener("click", () => {
     slowMoBtn.textContent = "Ralenti ×0.25";
   }
 });
+// Initialisation
+startPreview();
