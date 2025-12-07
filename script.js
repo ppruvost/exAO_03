@@ -74,15 +74,23 @@ function rgbToHsv(r, g, b) {
 function detectBall(imgData, stride = 2) {
     const data = imgData.data;
     const W = imgData.width, H = imgData.height;
+
     let sumX = 0, sumY = 0, count = 0;
+
     for (let y = 0; y < H; y += stride) {
         for (let x = 0; x < W; x += stride) {
+
             const i = (y * W + x) * 4;
-            const r = data[i], g = data[i+1], b = data[i+2];
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+
             const hsv = rgbToHsv(r, g, b);
 
             // Seuils pour balle de tennis jaune
-            const ok = hsv.h >= 45 && hsv.h <= 70 && hsv.s >= 0.4 && hsv.v >= 0.5;
+            const ok =
+                hsv.h >= 40 && hsv.h <= 60 &&
+                hsv.s >= 0.25 && hsv.s <= 0.65 &&
+                hsv.v >= 0.7 && hsv.v <= 1;
+
             if (!ok) continue;
 
             sumX += x;
@@ -90,8 +98,15 @@ function detectBall(imgData, stride = 2) {
             count++;
         }
     }
-    // Retourne null si pas assez de pixels détectés
-    return (count < 10) ? null : { x: sumX / count, y: sumY / count, count };
+
+    // Retour final propre
+    if (count < 10) return null;
+
+    return {
+        x: sumX / count,
+        y: sumY / count,
+        count: count
+    };
 }
 
 /* -------------------------
