@@ -1,11 +1,11 @@
 /************************************************************
- * script.js - exAO_02 (version intégrée : MRUA/MRUV/X(t)/CSV)
+ * script.js - exAO_02
  ************************************************************/
 
 /* -------------------------
    CONFIG
 ------------------------- */
-const REAL_DIAM_M = 0.15; // 15 cm
+const REAL_DIAM_M = 0.20; // 20 cm
 const MIN_PIXELS_FOR_DETECT = 40;
 
 /* -------------------------
@@ -78,16 +78,20 @@ function detectBall(imgData, stride = 2) {
     for (let y = 0; y < H; y += stride) {
         for (let x = 0; x < W; x += stride) {
             const i = (y * W + x) * 4;
-            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const r = data[i], g = data[i+1], b = data[i+2];
             const hsv = rgbToHsv(r, g, b);
-            const ok = hsv.h >= 28 && hsv.h <= 55 && hsv.s >= 0.22 && hsv.v >= 0.45;
+
+            // Seuils pour balle de tennis jaune
+            const ok = hsv.h >= 45 && hsv.h <= 70 && hsv.s >= 0.4 && hsv.v >= 0.5;
             if (!ok) continue;
-            if (r + g + b < 120) continue; // avoid dark spots
-            sumX += x; sumY += y; count++;
+
+            sumX += x;
+            sumY += y;
+            count++;
         }
     }
-    if (count < MIN_PIXELS_FOR_DETECT) return null;
-    return { x: sumX / count, y: sumY / count, count };
+    // Retourne null si pas assez de pixels détectés
+    return (count < 10) ? null : { x: sumX / count, y: sumY / count, count };
 }
 
 /* -------------------------
@@ -97,17 +101,32 @@ function estimatePxToMeter(imgData) {
     const data = imgData.data;
     const W = imgData.width, H = imgData.height;
     let found = [];
+
+    // Parcours des pixels pour détecter la balle jaune
     for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
             const i = (y * W + x) * 4;
             const r = data[i], g = data[i + 1], b = data[i + 2];
             const hsv = rgbToHsv(r, g, b);
-            if (hsv.h >= 28 && hsv.h <= 55 && hsv.s >= 0.22 && hsv.v >= 0.45 && (r+g+b>120)) {
+
+            // Seuils adaptés pour balle de tennis jaune
+            const ok = hsv.h >= 45 && hsv.h <= 70 && hsv.s >= 0.4 && hsv.v >= 0.5;
+            if (ok) {
                 found.push({ x, y });
             }
         }
     }
-    if (found.length < 200) return null;
+
+    // Debug : nombre de pixels détectés
+    console.log("Pixels détectés pour calibration :", found.length);
+
+    // Pas assez de pixels → calibration impossible
+    if (found.length < 50) { // seuil réduit pour test
+        console.warn("Pas assez de pixels pour calibration, pxToMeter non calculé");
+        return null;
+    }
+
+    // Calcul des coordonnées min/max
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (const p of found) {
         if (p.x < minX) minX = p.x;
@@ -115,9 +134,21 @@ function estimatePxToMeter(imgData) {
         if (p.y < minY) minY = p.y;
         if (p.y > maxY) maxY = p.y;
     }
+
     const diamPx = Math.max(maxX - minX, maxY - minY);
-    if (diamPx <= 2) return null;
-    return REAL_DIAM_M / diamPx;
+
+    // Debug : diamètre en pixels
+    console.log("Diamètre estimé en pixels :", diamPx);
+
+    if (diamPx <= 2) {
+        console.warn("Diamètre trop petit, calibration échouée");
+        return null;
+    }
+
+    // Conversion pixels → mètres
+    const pxToMeter = REAL_DIAM_M / diamPx;
+    console.log("Calibration réussie : pxToMeter =", pxToMeter.toFixed(6), "m/px");
+    return pxToMeter;
 }
 
 /* -------------------------
