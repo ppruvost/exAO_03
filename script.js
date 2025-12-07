@@ -99,10 +99,10 @@ function detectBall(imgData, stride = 2) {
       const g = data[i + 1];
       const b = data[i + 2];
       const hsv = rgbToHsv(r, g, b);
-      // thresholds (adjustable)
-      const ok = hsv.h >= 28 && hsv.h <= 55 && hsv.s >= 0.22 && hsv.v >= 0.45;
+      // Ajustez ces valeurs selon la couleur de votre balle
+      const ok = hsv.h >= 25 && hsv.h <= 50 && hsv.s >= 0.3 && hsv.v >= 0.5;
       if (!ok) continue;
-      if (r + g + b < 120) continue; // avoid dark spots
+      if (r + g + b < 120) continue; // Évite les zones trop sombres
       sumX += x;
       sumY += y;
       count++;
@@ -264,7 +264,7 @@ function previewLoop() {
   if (preview.readyState >= 2) {
     ctx.drawImage(preview, 0, 0, previewCanvas.width, previewCanvas.height);
     const img = ctx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
-    const pos = detectBall(img, 4);
+    const pos = detectBall(img, 1);
     if (pos) {
       ctx.beginPath();
       ctx.strokeStyle = "lime";
@@ -431,10 +431,13 @@ processBtn.addEventListener("click", async () => {
    Finalize analysis: compute a, update charts
    ------------------------- */
 function finalize() {
+  console.log("Données filtrées :", samplesFilt);
   if (samplesFilt.length < 3) {
     alert("Données insuffisantes après filtrage (vérifiez la détection / calibration).");
     return;
   }
+  // ...
+}
 
   const T = samplesFilt.map((s) => s.t);
   const Y = samplesFilt.map((s) => s.y);
