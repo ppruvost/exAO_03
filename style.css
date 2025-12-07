@@ -18,39 +18,42 @@ h1, h2, h3 {
 h2 { font-size: 1.5rem; }
 h3 { font-size: 1.2rem; }
 
+
 /* ========================================
    CONTENEUR VIDEO
    ======================================== */
 #videoWrapper {
   position: relative;
-  max-width: 640px;
+  width: 640px;
+  max-width: 100%;
   margin: 0 auto 15px auto;
 
-  overflow: hidden;        /* <--- LE FIX PRINCIPAL */
-  border-radius: 10px;     /* uniformité */
-  background: black;       /* évite flashs blancs */
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-/* Vidéo */
+/* Vidéo : AUCUN CROP — affichage naturel */
 #preview {
-  position: absolute;      /* <--- IMPORTANT */
-  inset: 0;                /* top:0; left:0; right:0; bottom:0 */
   width: 100%;
-  height: 100%;
-  object-fit: cover;       /* Remplir sans bandes */
+  height: auto;          /* <--- essentiel */
   display: block;
+  object-fit: contain;   /* <--- NE ROGNE PAS, pas de bandes noires */
+  background: #000;
   z-index: 1;
 }
 
-/* Canvas overlay (détection) */
+/* Canvas overlay */
 #previewCanvas {
   position: absolute;
-  inset: 0;                /* toujours exactement superposé */
-  pointer-events: none;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
+  height: 100%;          /* suit la vidéo automatiquement */
+  pointer-events: none;
   z-index: 2;
 }
+
 
 /* ========================================
    CONTROLES / BOUTONS
@@ -73,18 +76,13 @@ button {
   transition: background 0.2s, transform 0.15s;
 }
 
-button:hover {
-  background: #444;
-}
-
-button:active {
-  transform: scale(0.96);
-}
-
+button:hover { background: #444; }
+button:active { transform: scale(0.96); }
 button:disabled {
   background: #777;
   cursor: not-allowed;
 }
+
 
 /* ========================================
    INFORMATIONS / LABELS
@@ -112,6 +110,7 @@ button:disabled {
   color: #444;
 }
 
+
 /* ========================================
    CANVASES GRAPHIQUES
    ======================================== */
@@ -122,6 +121,7 @@ canvas {
   margin: 10px auto;
   border-radius: 6px;
 }
+
 
 /* ========================================
    RESPONSIVE MOBILE
